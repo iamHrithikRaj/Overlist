@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Overlist</string>
     <string name="tag_line">Find solution to all your Questions</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string-array name="topics">
+        <item>Select Topic</item>
+        <item>Finance</item>
+        <item>Sports</item>
+        <item>Food</item>
+    </string-array>
 </resources>
