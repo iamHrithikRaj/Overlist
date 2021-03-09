@@ -6,11 +6,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -19,6 +21,10 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,6 +38,7 @@ import com.google.firebase.storage.StorageTask;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 public class AskQuestionActivity extends AppCompatActivity {
     private Toolbar toolbar;
@@ -146,6 +153,99 @@ public class AskQuestionActivity extends AppCompatActivity {
             uploadQuestionWithImage();
         }
     }
+
+    private void uploadQuestionWithNoImage() {
+        startLoader();
+
+        String postId = ref.push().getKey();
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("postid", postId);
+        hashMap.put("question", getQuestionText());
+        hashMap.put("publisher", onlineUserId);
+        hashMap.put("topic", getTopic());
+        hashMap.put("askedby", askedByName);
+        hashMap.put("date", mDate);
+
+        ref.child(postId).setValue(hashMap).addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(AskQuestionActivity.this, "Question posted successfully", Toast.LENGTH_SHORT).show();
+                loader.dismiss();
+                startActivity(new Intent(AskQuestionActivity.this,HomeActivity.class));
+                finish();
+            }else{
+                Toast.makeText(AskQuestionActivity.this,"Couldn't upload question" + task.getException().toString(),Toast.LENGTH_SHORT).show();
+                loader.dismiss();
+            }
+        });
+    }
+
+    private void uploadQuestionWithImage() {
+        startLoader();
+        final StorageReference fileReference;
+        fileReference = storageReference.child(System.currentTimeMillis() + "." + getFileExtention(imageUri));
+        uploadTask = fileReference.putFile(imageUri);
+        uploadTask.continueWithTask(new Continuation() {
+            @Override
+            public Object then(@NonNull Task task) throws Exception {
+                if (!task.isComplete()){
+                    throw task.getException();
+                }
+                return fileReference.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener() {
+            @Override
+            public void onComplete(@NonNull Task task) {
+                if(task.isSuccessful()){
+                    Uri downloadUri = (Uri) task.getResult();
+                    myUrl = downloadUri.toString();
+
+                    String postId = ref.push().getKey();
+                    HashMap<String, Object> hashMap = new HashMap<>();
+                    hashMap.put("postid", postId);
+                    hashMap.put("question", getQuestionText());
+                    hashMap.put("publisher", onlineUserId);
+                    hashMap.put("topic", getTopic());
+                    hashMap.put("askedby", askedByName);
+                    hashMap.put("questionImage",myUrl);
+                    hashMap.put("date", mDate);
+
+                    ref.child(postId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                Toast.makeText(AskQuestionActivity.this, "Question posted successfully", Toast.LENGTH_SHORT).show();
+                                loader.dismiss();
+                                startActivity(new Intent(AskQuestionActivity.this,HomeActivity.class));
+                                finish();
+                            }else{
+                                Toast.makeText(AskQuestionActivity.this,"Couldn't upload question" + task.getException().toString(),Toast.LENGTH_SHORT).show();
+                                loader.dismiss();
+                            }
+                        }
+                    });
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(AskQuestionActivity.this, "Failed to upload the question", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void startLoader(){
+        loader.setMessage("Posting your question");
+        loader.setCanceledOnTouchOutside(false);
+        loader.show();
+    }
+
+    private String getFileExtention(Uri uri){
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
