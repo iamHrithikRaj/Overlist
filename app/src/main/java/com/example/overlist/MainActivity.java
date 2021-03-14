@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         title.setAnimation(bottomAnimation);
 
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
         },SPLASH);

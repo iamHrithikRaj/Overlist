@@ -65,7 +65,8 @@ public class PostAdapter  extends  RecyclerView.Adapter<PostAdapter.ViewHolder>{
         publisherInformation(holder.publisher_profile_image, holder.asked_by_Textview, post.getPublisher());
         isLiked(post.getPostid(), holder.like);
         isDisliked(post.getPostid(), holder.dislike);
-
+        getLikes(holder.likes, post.getPostid());
+        getDislikes(holder.dislikes, post.getPostid());
         holder.like.setOnClickListener(v -> {
             if (holder.like.getTag().equals("like") && holder.dislike.getTag().equals("dislike")){
                 FirebaseDatabase.getInstance().getReference().child("likes").child(post.getPostid()).child(firebaseUser.getUid()).setValue(true);
@@ -183,6 +184,52 @@ public class PostAdapter  extends  RecyclerView.Adapter<PostAdapter.ViewHolder>{
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
+            }
+        });
+    }
+
+    private void getLikes(TextView likes, String postid){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("likes").child(postid);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long numberOfLikes = snapshot.getChildrenCount();
+                int NOL = (int) numberOfLikes;
+                if(NOL  > 1){
+                    likes.setText(snapshot.getChildrenCount() + " likes");
+                }else if(NOL == 0){
+                    likes.setText("0 likes");
+                }else{
+                    likes.setText(snapshot.getChildrenCount() + " like");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(mContext, error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void getDislikes(TextView likes, String postid){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("dislikes").child(postid);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long numberOfDislikes = snapshot.getChildrenCount();
+                int NOD = (int) numberOfDislikes;
+                if(NOD  > 1){
+                    likes.setText(snapshot.getChildrenCount() + " dislikes");
+                }else if(NOD == 0){
+                    likes.setText("0 dislikes");
+                }else{
+                    likes.setText(snapshot.getChildrenCount() + " dislike");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(mContext, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
