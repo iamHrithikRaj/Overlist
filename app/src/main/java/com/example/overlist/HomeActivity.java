@@ -33,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -153,7 +154,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 intentF.putExtra("title","Food");
                 startActivity(intentF);
                 break;
-
         }
         drawer_layout.closeDrawer(GravityCompat.START);
         return true;

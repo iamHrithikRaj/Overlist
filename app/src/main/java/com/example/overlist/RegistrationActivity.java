@@ -141,37 +141,28 @@ public class RegistrationActivity extends AppCompatActivity {
                             byte[] data = byteArrayOutputStream.toByteArray();
                             UploadTask uploadTask = filePath.putBytes(data);
 
-                            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    if(taskSnapshot.getMetadata().getReference() != null){
-                                        Task<Uri> result = taskSnapshot.getStorage().getDownloadUrl();
-                                        result.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                            @Override
-                                            public void onSuccess(Uri uri) {
-                                                String imageUrl = uri.toString();
-                                                Map hashMap = new HashMap();
-                                                hashMap.put("profileimageurl", imageUrl);
-                                                reference.updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task task) {
-                                                        if(task.isSuccessful()){
-                                                            Toast.makeText(RegistrationActivity.this, "Profile Image starts successfully",Toast.LENGTH_LONG).show();
-                                                        }else{
-                                                            Toast.makeText(RegistrationActivity.this, "Couldn't upload the selected image" + task.getException().toString(),Toast.LENGTH_LONG).show();
-                                                        }
-                                                    }
-                                                });
-                                                finish();
+                            uploadTask.addOnSuccessListener(taskSnapshot -> {
+                                if(taskSnapshot.getMetadata().getReference() != null){
+                                    Task<Uri> result = taskSnapshot.getStorage().getDownloadUrl();
+                                    result.addOnSuccessListener(uri -> {
+                                        String imageUrl = uri.toString();
+                                        Map hashMap1 = new HashMap();
+                                        hashMap1.put("profileimageurl", imageUrl);
+                                        reference.updateChildren(hashMap1).addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                Toast.makeText(RegistrationActivity.this, "Profile Image starts successfully", Toast.LENGTH_LONG).show();
+                                            } else {
+                                                Toast.makeText(RegistrationActivity.this, "Couldn't upload the selected image" + task1.getException().toString(), Toast.LENGTH_LONG).show();
                                             }
                                         });
-                                    }
+                                        finish();
+                                    });
+                                    Intent intent = new Intent(RegistrationActivity.this, HomeActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                    loader.dismiss();
                                 }
                             });
-                            Intent intent = new Intent(RegistrationActivity.this, HomeActivity.class);
-                            startActivity(intent);
-                            finish();
-                            loader.dismiss();
                         }
                     }
                 });

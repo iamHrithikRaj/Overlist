@@ -33,21 +33,19 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressDialog loader;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                if(user != null){
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
+        authStateListener = firebaseAuth -> {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if(user != null){
+                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                startActivity(intent);
+                finish();
             }
         };
 
@@ -57,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         login = findViewById(R.id.loginBtn);
 
         loader = new ProgressDialog(this);
+        mAuth = FirebaseAuth.getInstance();
 
         question.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
@@ -77,15 +76,18 @@ public class LoginActivity extends AppCompatActivity {
                 loader.setCanceledOnTouchOutside(false);
                 loader.show();
 
-                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        Toast.makeText(LoginActivity.this,"Login Successful, logged in as " + Objects.requireNonNull(mAuth.getCurrentUser()).getEmail() ,Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }else{
-                        Toast.makeText(LoginActivity.this,"Login Failed " + Objects.requireNonNull(task.getException()).toString(),Toast.LENGTH_LONG).show();
+                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()){
+                            Toast.makeText(LoginActivity.this,"Login Successful, logged in as " + Objects.requireNonNull(mAuth.getCurrentUser()).getEmail() ,Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }else{
+                            Toast.makeText(LoginActivity.this,"Login Failed " + Objects.requireNonNull(task.getException()).toString(),Toast.LENGTH_LONG).show();
 
+                        }
                     }
                 });
             }

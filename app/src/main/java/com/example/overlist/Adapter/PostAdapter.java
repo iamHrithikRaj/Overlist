@@ -1,6 +1,7 @@
 package com.example.overlist.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.overlist.CommentsActivity;
 import com.example.overlist.HomeActivity;
 import com.example.overlist.Model.Post;
 import com.example.overlist.Model.User;
@@ -92,6 +94,20 @@ public class PostAdapter  extends  RecyclerView.Adapter<PostAdapter.ViewHolder>{
                 FirebaseDatabase.getInstance().getReference().child("dislikes").child(post.getPostid()).child(firebaseUser.getUid()).removeValue();
             }
         });
+
+        holder.comment.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, CommentsActivity.class);
+            intent.putExtra("postid", post.getPostid());
+            intent.putExtra("publisher", post.getPublisher());
+            mContext.startActivity(intent);
+        });
+
+        holder.comments.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, CommentsActivity.class);
+            intent.putExtra("postid", post.getPostid());
+            intent.putExtra("publisher", post.getPublisher());
+            mContext.startActivity(intent);
+        });
     }
 
     @Override
@@ -168,7 +184,7 @@ public class PostAdapter  extends  RecyclerView.Adapter<PostAdapter.ViewHolder>{
 
     private void isDisliked(String postid, ImageView imageView){
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("disikes").child(postid);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("dislikes").child(postid);
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
